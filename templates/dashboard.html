@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <form action="/dashboard" method="GET">
+            <label for="category">Choose a category:</label>
+            <select id="category" name="view" onchange="this.form.submit();">
+                <option value="">Select a category</option>
+                {{range .names}}
+                    <option value="{{.}}">{{.}}</option>
+                {{end}}
+            </select>
+        </form>
+
+        <div id="data-display">
+            {{if .selectedCategory}}
+                <h2>{{.categoryName}}</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            {{range $key, $value := index .selectedCategory 0}} <!-- Assumons qu'il y a au moins une entrée -->
+                                <th>{{$key}}</th>
+                            {{end}}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .selectedCategory}}
+                            <tr>
+                                {{range $key, $value := .}}
+                                    <td>{{$value}}</td>
+                                {{end}}
+                            </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            {{else}}
+                <p>Please select a category to view the data.</p>
+            {{end}}
+        </div>
+    </div>
+</body>
+</html>
