@@ -1,23 +1,10 @@
 package logic
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
-
-func HandleAPI() {
-	r := gin.Default()
-
-	r.GET("/api/:category", GetCategoryData)
-
-	if err := r.Run(":8080"); err != nil {
-		fmt.Println("Error starting server:", err)
-	}
-
-	fmt.Println("Server is running on port 4040 🌐")
-}
 
 func GetCategoryData(c *gin.Context) {
 	category := c.Param("category")
