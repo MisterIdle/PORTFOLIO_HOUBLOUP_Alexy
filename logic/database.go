@@ -27,7 +27,7 @@ func InitData() {
 		resetAll()
 		createData()
 
-		MakeDataFromTable("contact", []interface{}{"1", "Doe", "John", "", ""})
+		InsertDataIntoTable("contact", map[string][]string{"nom": {"Doe"}, "prenom": {"John"}, "email": {"email"}, "telephone": {"123456789"}})
 
 		fmt.Println("Database has been deleted and reinitialized 🔄")
 	}
@@ -85,7 +85,6 @@ func resetAll() {
 	db.Exec("DROP TABLE IF EXISTS competences")
 }
 
-// Recuperer les noms de toutes les tables dynamiquement
 func GetAllTablesNames() []string {
 	rows, err := db.Query("SELECT name FROM sqlite_master WHERE type='table';")
 	if err != nil {
@@ -102,55 +101,83 @@ func GetAllTablesNames() []string {
 	return tables
 }
 
-func GetDataFromTable(table string) []Entry {
-	rows, err := db.Query("SELECT * FROM " + table + ";")
+func GetColumnNames(table string) ([]string, error) {
+	rows, err := db.Query("SELECT * FROM " + table + " LIMIT 1;")
 	if err != nil {
-		fmt.Println("Error querying table:", table, "Error:", err)
-		return nil
+		return nil, fmt.Errorf("error querying table: %s, error: %w", table, err)
 	}
 	defer rows.Close()
 
-	columns, _ := rows.Columns()
-
-	data := []Entry{}
-	for rows.Next() {
-		values := make([]interface{}, len(columns))
-		pointers := make([]interface{}, len(columns))
-
-		for i := range values {
-			pointers[i] = &values[i]
-		}
-
-		rows.Scan(pointers...)
-
-		entry := Entry{
-			Columns: columns,
-			Values:  values,
-		}
-
-		data = append(data, entry)
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, fmt.Errorf("error getting columns from table: %s, error: %w", table, err)
 	}
 
-	return data
+	fmt.Println("Columns from table:", table)
+
+	return columns, nil
 }
 
-func MakeDataFromTable(table string, data []interface{}) {
-	query := "INSERT INTO " + table + " VALUES ("
-	for i := 0; i < len(data); i++ {
-		query += "?,"
-	}
-	query = query[:len(query)-1] + ");"
-
-	stmt, err := db.Prepare(query)
+func GetValuesFromTable(table string) ([][]string, error) {
+	rows, err := db.Query("SELECT * FROM " + table + ";")
 	if err != nil {
-		fmt.Println("Error preparing query:", query, "Error:", err)
-		return
+		return nil, fmt.Errorf("error querying table: %s, error: %w", table, err)
 	}
-	defer stmt.Close()
+	defer rows.Close()
 
-	_, err = stmt.Exec(data...)
+	columns, err := rows.Columns()
 	if err != nil {
-		fmt.Println("Error executing query:", query, "Error:", err)
-		return
+		return nil, fmt.Errorf("error getting columns from table: %s, error: %w", table, err)
 	}
+
+	var allRows [][]string
+	for rows.Next() {
+		values := make([]interface{}, len(columns))
+		valuePtrs := make([]interface{}, len(columns))
+		for i := range columns {
+			valuePtrs[i] = &values[i]
+		}
+
+		rows.Scan(valuePtrs...)
+
+		rowData := make([]string, len(columns))
+		for i, v := range values {
+			if v != nil {
+				rowData[i] = fmt.Sprintf("%v", v)
+			} else {
+				rowData[i] = ""
+			}
+		}
+
+		allRows = append(allRows, rowData)
+	}
+
+	return allRows, nil
+}
+
+func InsertDataIntoTable(table string, data map[string][]string) {
+	_, err := db.Exec("INSERT INTO " + table + " (" + getColumns(data) + ") VALUES (" + getValues(data) + ");")
+	if err != nil {
+		fmt.Println("Error inserting data into table:", err)
+	}
+
+	fmt.Println("Data inserted into table:", table)
+}
+
+func getColumns(data map[string][]string) string {
+	var columns string
+	for key := range data {
+		columns += key + ","
+	}
+
+	return columns[:len(columns)-1]
+}
+
+func getValues(data map[string][]string) string {
+	var values string
+	for _, value := range data {
+		values += "'" + value[0] + "',"
+	}
+
+	return values[:len(values)-1]
 }

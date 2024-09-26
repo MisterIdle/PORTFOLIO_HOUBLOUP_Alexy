@@ -1,10 +1,5 @@
 package logic
 
-type Entry struct {
-	Columns []string
-	Values  []interface{}
-}
-
 type Contact struct {
 	ID        int
 	Nom       string

@@ -3,7 +3,6 @@ package logic
 import (
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 func LaunchApp() {
@@ -30,6 +29,8 @@ func HandleAll() {
 	http.HandleFunc("/", IndexHandler)
 	http.HandleFunc("/about", AboutHandler)
 	http.HandleFunc("/dashboard", DashboardHandler)
+
+	http.HandleFunc("/dashboard/add", AddContentHandler)
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,43 +39,4 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	RenderTemplateWithoutData(w, "templates/about.html")
-}
-
-func DashboardHandler(w http.ResponseWriter, r *http.Request) {
-	category := r.URL.Query().Get("view")
-	tables := GetAllTablesNames()
-
-	// Si le nom est sqlite_sequence, on le retire
-	for i, table := range tables {
-		if table == "sqlite_sequence" {
-			tables = append(tables[:i], tables[i+1:]...)
-		}
-	}
-
-	for i, table := range tables {
-		tables[i] = strings.ToTitle(table)
-	}
-
-	var data struct {
-		Names   []string
-		Entries struct {
-			Columns []string
-			Values  [][]interface{}
-		}
-	}
-
-	data.Names = tables
-
-	if category != "" {
-		entries := GetDataFromTable(category)
-		if len(entries) > 0 {
-			data.Entries.Columns = entries[0].Columns
-
-			for _, entry := range entries {
-				data.Entries.Values = append(data.Entries.Values, entry.Values)
-			}
-		}
-	}
-
-	RenderTemplateGlobal(w, r, "templates/dashboard.html", data)
 }

@@ -4,43 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <div class="dashboard-container">
-        <form action="/dashboard" method="GET">
+    <header class="site-header">
+        <nav class="main-nav">
+            <ul class="nav-list">
+                <li><a href="index">Home</a></li>
+                <li><a href="professionnal">Professionnal</a></li>
+                <li><a href="contact">Contact</a></li>
+                <li><a href="dashboard">Dashboard</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="dashboard">
+        <form action="/dashboard" method="GET" class="category-selection-form">
             <label for="category">Choose a category:</label>
-            <select id="category" name="view" onchange="this.form.submit();">
+            <select id="category" name="view" onchange="this.form.submit();" class="category-dropdown">
                 <option value="">Select a category</option>
                 {{range .Names}}
                     <option value="{{.}}">{{.}}</option>
                 {{end}}
             </select>
         </form>
-
-        <div id="data-display">
-            {{if .Entries.Values}}
-                <table border="1">
-                    <thead>
-                        <tr>
-                            {{range $col := .Entries.Columns}}
-                                <th>{{$col}}</th>
-                            {{end}}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{range $entry := .Entries.Values}}
-                            <tr>
-                                {{range $value := $entry}}
-                                    <td>{{$value}}</td>
-                                {{end}}
-                            </tr>
+        
+        <div id="data-display" class="data-display">
+            <table border="1" class="data-table">
+                <thead>
+                    <tr>
+                        {{range $index, $element := .Entries.Columns}}
+                            <th>{{$element}}</th>
                         {{end}}
-                    </tbody>
-                </table>
-            {{else}}
-                <p>No data available for the selected category.</p>
-            {{end}}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Entries.Rows}}
+                        <tr>
+                            {{range .}}
+                                <td>{{.}}</td>
+                            {{end}}
+                            <td class="action-buttons">
+                                <button class="action-btn edit-btn" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {{end}}
+                </tbody>                                
+            </table>                
         </div>
+
+        <div class="dynamic-form">
+            <form action="/dashboard/add" method="POST" class="add-form">
+                {{range $index, $column := .Entries.Columns}}
+                    {{if ne $index 0}}
+                        <label for="{{$column}}">{{$column}}</label>
+                        <input type="text" id="{{$column}}" name="{{$column}}" class="add-form-input">
+                    {{end}}
+                {{end}}
+                <input type="hidden" id="category" name="category" value="{{.Entries.View}}">
+                <button type="submit" class="dashboard-btn dashboard-btn-add">Add</button>
+            </form>            
+        </div>        
     </div>
+
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>
