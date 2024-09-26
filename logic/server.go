@@ -3,6 +3,7 @@ package logic
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 func LaunchApp() {
@@ -41,28 +42,37 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	category := r.URL.Query().Get("view")
-
 	tables := GetAllTablesNames()
-	data := make(map[string]interface{})
 
-	filteredTables := []string{}
-	for _, table := range tables {
-		if table != "sqlite_sequence" {
-			filteredTables = append(filteredTables, table)
+	// Si le nom est sqlite_sequence, on le retire
+	for i, table := range tables {
+		if table == "sqlite_sequence" {
+			tables = append(tables[:i], tables[i+1:]...)
 		}
 	}
 
-	data["names"] = filteredTables
+	for i, table := range tables {
+		tables[i] = strings.ToTitle(table)
+	}
+
+	var data struct {
+		Names   []string
+		Entries struct {
+			Columns []string
+			Values  [][]interface{}
+		}
+	}
+
+	data.Names = tables
 
 	if category != "" {
-		content := GetDataFromTable(category)
-		data[category] = content
-		data["selectedCategory"] = content
-		data["categoryName"] = category
-	} else {
-		for _, table := range filteredTables {
-			content := GetDataFromTable(table)
-			data[table] = content
+		entries := GetDataFromTable(category)
+		if len(entries) > 0 {
+			data.Entries.Columns = entries[0].Columns
+
+			for _, entry := range entries {
+				data.Entries.Values = append(data.Entries.Values, entry.Values)
+			}
 		}
 	}
 

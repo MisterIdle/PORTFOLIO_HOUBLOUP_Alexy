@@ -27,7 +27,7 @@ func InitData() {
 		resetAll()
 		createData()
 
-		MakeFakeData()
+		MakeDataFromTable("contact", []interface{}{"1", "Doe", "John", "", ""})
 
 		fmt.Println("Database has been deleted and reinitialized 🔄")
 	}
@@ -102,41 +102,30 @@ func GetAllTablesNames() []string {
 	return tables
 }
 
-func GetDataFromTable(table string) []map[string]interface{} {
-	rows, err := db.Query("SELECT * FROM " + table)
+func GetDataFromTable(table string) []Entry {
+	rows, err := db.Query("SELECT * FROM " + table + ";")
 	if err != nil {
-		fmt.Println("Error querying data:", err)
+		fmt.Println("Error querying table:", table, "Error:", err)
 		return nil
 	}
 	defer rows.Close()
 
-	// Récupérer les noms des colonnes de la table
-	columns, err := rows.Columns()
-	if err != nil {
-		fmt.Println("Error getting columns:", err)
-		return nil
-	}
+	columns, _ := rows.Columns()
 
-	fmt.Println("Columns:", columns)
-
-	var data []map[string]interface{}
-
+	data := []Entry{}
 	for rows.Next() {
 		values := make([]interface{}, len(columns))
+		pointers := make([]interface{}, len(columns))
+
 		for i := range values {
-			values[i] = new(interface{})
+			pointers[i] = &values[i]
 		}
 
-		err = rows.Scan(values...)
-		if err != nil {
-			fmt.Println("Error scanning rows:", err)
-			return nil
-		}
+		rows.Scan(pointers...)
 
-		entry := make(map[string]interface{})
-		for i, col := range columns {
-			val := values[i].(*interface{})
-			entry[col] = *val
+		entry := Entry{
+			Columns: columns,
+			Values:  values,
 		}
 
 		data = append(data, entry)
@@ -145,15 +134,23 @@ func GetDataFromTable(table string) []map[string]interface{} {
 	return data
 }
 
-func MakeFakeData() {
-	db.Exec("INSERT INTO contact (nom, prenom, email, telephone) VALUES ('Doe', 'John', 'ex', '1234567890');")
+func MakeDataFromTable(table string, data []interface{}) {
+	query := "INSERT INTO " + table + " VALUES ("
+	for i := 0; i < len(data); i++ {
+		query += "?,"
+	}
+	query = query[:len(query)-1] + ");"
 
-	db.Exec("INSERT INTO formations (etablissement, diplome, date_debut, date_fin, description) VALUES ('Université de Paris', 'Licence', '2018-09-01', '2021-06-30', 'Informatique');")
-	db.Exec("INSERT INTO formations (etablissement, diplome, date_debut, date_fin, description) VALUES ('Université de Paris', 'Master', '2021-09-01', '2023-06-30', 'Informatique');")
-	db.Exec("INSERT INTO formations (etablissement, diplome, date_debut, date_fin, description) VALUES ('Université de Paris', 'Doctorat', '2023-09-01', '2027-06-30', 'Informatique');")
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		fmt.Println("Error preparing query:", query, "Error:", err)
+		return
+	}
+	defer stmt.Close()
 
-	db.Exec("INSERT INTO experiences (poste, societe, date_debut, date_fin, description) VALUES ('Développeur', 'Google', '2021-07-01', '2021-12-31', 'Développement web');")
-
-	db.Exec("INSERT INTO competences (nom, description) VALUES ('Go', 'Langage de programmation');")
-	db.Exec("INSERT INTO competences (nom, description) VALUES ('Python', 'Langage de programmation');")
+	_, err = stmt.Exec(data...)
+	if err != nil {
+		fmt.Println("Error executing query:", query, "Error:", err)
+		return
+	}
 }
