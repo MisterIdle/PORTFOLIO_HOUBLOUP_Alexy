@@ -31,6 +31,7 @@ func HandleAll() {
 	http.HandleFunc("/dashboard", DashboardHandler)
 
 	http.HandleFunc("/dashboard/add", AddContentHandler)
+	http.HandleFunc("/dashboard/delete", DeleteContentHandler)
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {

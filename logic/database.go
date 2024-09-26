@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -180,4 +181,46 @@ func getValues(data map[string][]string) string {
 	}
 
 	return values[:len(values)-1]
+}
+
+func DeleteRowFromTable(table, id string) {
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		fmt.Println("Error converting id to integer:", err)
+		return
+	}
+
+	_, err = db.Exec("DELETE FROM "+table+" WHERE id = ?;", idInt)
+	if err != nil {
+		fmt.Println("Error deleting row from table:", err)
+		return
+	}
+
+	updateQuery := fmt.Sprintf(`
+		UPDATE %s
+		SET id = id - 1
+		WHERE id > ?;`, table)
+
+	_, err = db.Exec(updateQuery, idInt)
+	if err != nil {
+		fmt.Println("Error updating row IDs in table:", err)
+		return
+	}
+
+	reassignQuery := fmt.Sprintf(`
+		UPDATE %s
+		SET id = (
+			SELECT COUNT(*) 
+			FROM %s AS t 
+			WHERE t.id <= %s
+		)
+		WHERE id = %s;`, table, table, id, id)
+
+	_, err = db.Exec(reassignQuery, id)
+	if err != nil {
+		fmt.Println("Error reassigning IDs in table:", err)
+		return
+	}
+
+	fmt.Println("Row deleted from table:", table)
 }

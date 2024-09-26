@@ -47,12 +47,11 @@
                                 <td>{{.}}</td>
                             {{end}}
                             <td class="action-buttons">
-                                <button class="action-btn edit-btn" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn delete-btn" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                <form action="/dashboard/delete" method="POST" class="delete-form">
+                                    <input type="hidden" id="id" name="id" value="{{index . 0}}">
+                                    <input type="hidden" id="category" name="category" value="{{$.Entries.View}}">
+                                    <button type="submit" class="dashboard-btn dashboard-btn-delete"><i class="fas fa-trash-alt"></i></button>
+                                </form>
                             </td>
                         </tr>
                     {{end}}

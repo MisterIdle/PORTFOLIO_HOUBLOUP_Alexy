@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -35,8 +34,6 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	data.Entries.Rows, _ = GetValuesFromTable(category)
 	data.Entries.View = category
 
-	fmt.Printf("Data passed to template: %+v\n", data)
-
 	RenderTemplateGlobal(w, r, "templates/dashboard.html", data)
 }
 
@@ -58,6 +55,16 @@ func AddContentHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		InsertDataIntoTable(category, addContentConverted)
+		http.Redirect(w, r, "/dashboard?view="+category, http.StatusSeeOther)
+	}
+}
+
+func DeleteContentHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		category := r.FormValue("category")
+		id := r.FormValue("id")
+
+		DeleteRowFromTable(category, id)
 		http.Redirect(w, r, "/dashboard?view="+category, http.StatusSeeOther)
 	}
 }
