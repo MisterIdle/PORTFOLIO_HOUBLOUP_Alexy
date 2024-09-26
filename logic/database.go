@@ -45,7 +45,7 @@ func InitData() {
 func createData() {
 	query := `
 	CREATE TABLE IF NOT EXISTS contact (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id INTEGER,
 		nom TEXT,
 		prenom TEXT,
 		email TEXT,
@@ -53,7 +53,7 @@ func createData() {
 	);
 	
 	CREATE TABLE IF NOT EXISTS formations (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id INTEGER,
 		etablissement TEXT,
 		diplome TEXT,
 		date_debut TEXT,
@@ -62,7 +62,7 @@ func createData() {
 	);
 
 	CREATE TABLE IF NOT EXISTS experiences (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id INTEGER,
 		poste TEXT,
 		societe TEXT,
 		date_debut TEXT,
@@ -71,7 +71,7 @@ func createData() {
 	);
 
 	CREATE TABLE IF NOT EXISTS competences (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id INTEGER,
 		nom TEXT,
 		description TEXT
 	);`
@@ -114,8 +114,6 @@ func GetColumnNames(table string) ([]string, error) {
 		return nil, fmt.Errorf("error getting columns from table: %s, error: %w", table, err)
 	}
 
-	fmt.Println("Columns from table:", table)
-
 	return columns, nil
 }
 
@@ -157,12 +155,23 @@ func GetValuesFromTable(table string) ([][]string, error) {
 }
 
 func InsertDataIntoTable(table string, data map[string][]string) {
-	_, err := db.Exec("INSERT INTO " + table + " (" + getColumns(data) + ") VALUES (" + getValues(data) + ");")
+	var id int
+	err := db.QueryRow("SELECT MAX(id) FROM " + table + ";").Scan(&id)
 	if err != nil {
-		fmt.Println("Error inserting data into table:", err)
+		id = 0
 	}
 
-	fmt.Println("Data inserted into table:", table)
+	id++
+
+	columns := getColumns(data)
+	values := getValues(data)
+
+	query := fmt.Sprintf("INSERT INTO %s (id, %s) VALUES (%d, %s);", table, columns, id, values)
+	_, err = db.Exec(query)
+	if err != nil {
+		fmt.Println("Error inserting data into table:", err)
+		return
+	}
 }
 
 func getColumns(data map[string][]string) string {
@@ -221,6 +230,4 @@ func DeleteRowFromTable(table, id string) {
 		fmt.Println("Error reassigning IDs in table:", err)
 		return
 	}
-
-	fmt.Println("Row deleted from table:", table)
 }

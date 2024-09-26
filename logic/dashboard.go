@@ -34,6 +34,10 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	data.Entries.Rows, _ = GetValuesFromTable(category)
 	data.Entries.View = category
 
+	for i, column := range data.Entries.Columns {
+		data.Entries.Columns[i] = Capitalize(column)
+	}
+
 	RenderTemplateGlobal(w, r, "templates/dashboard.html", data)
 }
 
@@ -57,6 +61,13 @@ func AddContentHandler(w http.ResponseWriter, r *http.Request) {
 		InsertDataIntoTable(category, addContentConverted)
 		http.Redirect(w, r, "/dashboard?view="+category, http.StatusSeeOther)
 	}
+}
+
+func Capitalize(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return string(s[0]-32) + s[1:]
 }
 
 func DeleteContentHandler(w http.ResponseWriter, r *http.Request) {

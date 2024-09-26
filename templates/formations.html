@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formations</title>
+
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <ul class="nav-items">
+                <li><a href="index">Home</a></li>
+                <li><a href="experiences">Experiences</a></li>
+                <li><a href="formations">Formations</a></li>
+                <li><a href="skills">Skills</a></li>
+                <li><a href="dashboard">Admin</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="content">
+        <h1 class="section-title">Formations</h1>
+
+        <table border="1" class="data-table">
+            <thead>
+                <tr>
+                    {{if .Entries.Columns}}
+                        {{range .Entries.Columns}}
+                            {{if ne . "Id"}}
+                                <th>{{.}}</th>
+                            {{end}}
+                        {{end}}
+                    {{end}}
+                </tr>
+            </thead>
+            <tbody>
+                {{if .Entries.Rows}}
+                    {{range .Entries.Rows}}
+                        <tr>
+                            {{range $index, $element := .}}
+                                {{if ne $index 0}}
+                                    <td>{{.}}</td>
+                                {{end}}
+                            {{end}}
+                        </tr>
+                    {{end}}
+                {{else}}
+                <h2>No data available</h2>
+                {{end}}
+            </tbody>
+        </table>
+    </section>
+
+    <div id="loader" class="loader">Chargement...</div>
+
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
+    <script src="/js/script.js"></script>
+</body>
+</html>
