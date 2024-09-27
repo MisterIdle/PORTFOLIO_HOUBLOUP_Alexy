@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetCategoryData is a function that retrieves data from a specific category
 func GetCategoryData(c *gin.Context) {
 	category := c.Param("category")
 	var entries [][]string
@@ -25,7 +26,6 @@ func GetCategoryData(c *gin.Context) {
 		return
 	}
 
-	// Récupérer les données à partir de la table
 	entries, err := GetValuesFromTable(category)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving data from table"})

@@ -1,5 +1,8 @@
 import requests
 
+# This program is not ask to be run, but it is a test program to check if the API is working correctly
+
+# Function to call the API
 def call_api(url):
     try:
         response = requests.get(url)

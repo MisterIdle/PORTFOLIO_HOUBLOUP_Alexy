@@ -12,6 +12,7 @@ import (
 
 var db *sql.DB
 
+// InitData initializes the database
 func InitData() {
 	var err error
 	db, err = sql.Open("sqlite3", "./database.db")
@@ -42,6 +43,7 @@ func InitData() {
 	fmt.Println("Database has been initialized ✔️")
 }
 
+// createData creates the tables in the database
 func createData() {
 	query := `
 	CREATE TABLE IF NOT EXISTS contact (
@@ -79,6 +81,7 @@ func createData() {
 	db.Exec(query)
 }
 
+// resetAll resets the database if -force flag is passed
 func resetAll() {
 	db.Exec("DROP TABLE IF EXISTS contact")
 	db.Exec("DROP TABLE IF EXISTS formations")
@@ -86,6 +89,7 @@ func resetAll() {
 	db.Exec("DROP TABLE IF EXISTS competences")
 }
 
+// GetAllTablesNames returns all the tables in the database
 func GetAllTablesNames() []string {
 	rows, err := db.Query("SELECT name FROM sqlite_master WHERE type='table';")
 	if err != nil {
@@ -102,6 +106,7 @@ func GetAllTablesNames() []string {
 	return tables
 }
 
+// GetColumnNames returns the columns of a table
 func GetColumnNames(table string) ([]string, error) {
 	rows, err := db.Query("SELECT * FROM " + table + " LIMIT 1;")
 	if err != nil {
@@ -117,6 +122,7 @@ func GetColumnNames(table string) ([]string, error) {
 	return columns, nil
 }
 
+// GetValuesFromTable returns the values from a table
 func GetValuesFromTable(table string) ([][]string, error) {
 	rows, err := db.Query("SELECT * FROM " + table + ";")
 	if err != nil {
@@ -154,8 +160,11 @@ func GetValuesFromTable(table string) ([][]string, error) {
 	return allRows, nil
 }
 
+// InsertDataIntoTable inserts data into a table
 func InsertDataIntoTable(table string, data map[string][]string) {
 	var id int
+
+	// Get the last ID in the table
 	err := db.QueryRow("SELECT MAX(id) FROM " + table + ";").Scan(&id)
 	if err != nil {
 		id = 0
@@ -166,6 +175,7 @@ func InsertDataIntoTable(table string, data map[string][]string) {
 	columns := getColumns(data)
 	values := getValues(data)
 
+	// Insert the data into the table
 	query := fmt.Sprintf("INSERT INTO %s (id, %s) VALUES (%d, %s);", table, columns, id, values)
 	_, err = db.Exec(query)
 	if err != nil {
@@ -174,6 +184,7 @@ func InsertDataIntoTable(table string, data map[string][]string) {
 	}
 }
 
+// getColumns returns the columns of a table
 func getColumns(data map[string][]string) string {
 	var columns string
 	for key := range data {
@@ -183,6 +194,7 @@ func getColumns(data map[string][]string) string {
 	return columns[:len(columns)-1]
 }
 
+// getValues returns the values of a table
 func getValues(data map[string][]string) string {
 	var values string
 	for _, value := range data {
@@ -192,6 +204,7 @@ func getValues(data map[string][]string) string {
 	return values[:len(values)-1]
 }
 
+// DeleteRowFromTable deletes a row from a table
 func DeleteRowFromTable(table, id string) {
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
@@ -205,6 +218,7 @@ func DeleteRowFromTable(table, id string) {
 		return
 	}
 
+	// Update the IDs of the rows
 	updateQuery := fmt.Sprintf(`
 		UPDATE %s
 		SET id = id - 1
@@ -216,6 +230,7 @@ func DeleteRowFromTable(table, id string) {
 		return
 	}
 
+	// Reassign the IDs of the rows
 	reassignQuery := fmt.Sprintf(`
 		UPDATE %s
 		SET id = (

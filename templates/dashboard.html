@@ -36,6 +36,7 @@
             <table border="1" class="data-table">
                 <thead>
                     <tr>
+                        <!-- Range over the columns to display the table headers -->
                         {{range $index, $element := .Entries.Columns}}
                             <th>{{$element}}</th>
                         {{end}}
@@ -43,6 +44,7 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- Range over the rows to display the table data -->
                     {{range .Entries.Rows}}
                         <tr>
                             {{range .}}
@@ -61,6 +63,7 @@
             </table>                
         </div>
 
+        <!-- Display the form to add a new entry -->
         <div class="dynamic-form">
             <form action="/dashboard/add" method="POST" class="add-form">
                 {{range $index, $column := .Entries.Columns}}

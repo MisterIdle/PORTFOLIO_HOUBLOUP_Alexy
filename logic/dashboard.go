@@ -4,12 +4,6 @@ import (
 	"net/http"
 )
 
-type Entry struct {
-	Columns []string
-	Rows    [][]string
-	View    string
-}
-
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	category := r.URL.Query().Get("view")
 	tables := GetAllTablesNames()

@@ -2,6 +2,7 @@ package logic
 
 import "net/http"
 
+// IndexHandler is a function that renders the index page
 func ExperiencesHandler(w http.ResponseWriter, r *http.Request) {
 	tables := GetAllTablesNames()
 
@@ -11,6 +12,7 @@ func ExperiencesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Create a struct to hold the data for the html template
 	var data struct {
 		Names   []string
 		Entries struct {
@@ -20,6 +22,7 @@ func ExperiencesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Set the data for the html template
 	data.Names = tables
 	data.Entries.Columns, _ = GetColumnNames("experiences")
 	data.Entries.Rows, _ = GetValuesFromTable("experiences")
@@ -32,6 +35,7 @@ func ExperiencesHandler(w http.ResponseWriter, r *http.Request) {
 	RenderTemplateGlobal(w, r, "templates/experiences.html", data)
 }
 
+// FormationHandler is a function that renders the formations page
 func FormationHandler(w http.ResponseWriter, r *http.Request) {
 	tables := GetAllTablesNames()
 
@@ -62,6 +66,7 @@ func FormationHandler(w http.ResponseWriter, r *http.Request) {
 	RenderTemplateGlobal(w, r, "templates/formations.html", data)
 }
 
+// SkillsHandler is a function that renders the skills page
 func SkillsHandler(w http.ResponseWriter, r *http.Request) {
 	tables := GetAllTablesNames()
 
@@ -89,5 +94,6 @@ func SkillsHandler(w http.ResponseWriter, r *http.Request) {
 		data.Entries.Columns[i] = Capitalize(column)
 	}
 
+	// Render the skills page
 	RenderTemplateGlobal(w, r, "templates/skills.html", data)
 }
